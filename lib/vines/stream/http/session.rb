@@ -19,6 +19,10 @@ module Vines
           @content_type = CONTENT_TYPE
         end
 
+        def stream
+          @state.stream
+        end
+
         def close
           Sessions.delete(@id)
           router.delete(self)

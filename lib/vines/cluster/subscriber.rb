@@ -84,12 +84,20 @@ module Vines
         node = Nokogiri::XML(message[STANZA]).root rescue nil
         return unless node
         log.debug { "Received cluster stanza: %s -> %s\n%s\n" % [message[FROM], @cluster.id, node] }
-        if node[TO]
-          @cluster.connected_resources(node[TO]).each do |recipient|
-            recipient.write(node)
+
+        stream = @cluster.connected_resources(node[TO]).first.stream
+        stanza = Vines::Stanza.from_node(node, stream)
+
+        if stanza.nil?
+          if node[TO]
+            @cluster.connected_resources(node[TO]).each do |recipient|
+              recipient.write(node)
+            end
+          else
+            log.warn("Cluster stanza missing address:\n#{node}")
           end
         else
-          log.warn("Cluster stanza missing address:\n#{node}")
+          stanza.process
         end
       end
 

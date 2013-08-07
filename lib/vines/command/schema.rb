@@ -14,7 +14,7 @@ module Vines
           raise "SQL storage not configured for #{domain} virtual host"
         end
         begin
-          storage.create_schema
+          storage.create_schema(force: opts[:force])
         rescue => e
           raise "Schema creation failed: #{e.message}"
         end

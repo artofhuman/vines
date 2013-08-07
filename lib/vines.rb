@@ -92,7 +92,12 @@ end
   vines/stanza/iq/session
   vines/stanza/iq/vcard
   vines/stanza/iq/version
+
   vines/stanza/message
+  vines/stanza/message/archive
+  vines/stanza/message/offline
+  vines/stanza/message/broadcast
+
   vines/stanza/presence
   vines/stanza/presence/error
   vines/stanza/presence/probe

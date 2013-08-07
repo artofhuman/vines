@@ -72,6 +72,11 @@ module Vines
           options[:pid] = pid
         end
 
+        options[:force] = false
+        opts.on('-f', '--force', 'Forcibly do something') do |log|
+          options[:force] = true
+        end
+
         opts.separator ""
         opts.separator "Common options:"
 
