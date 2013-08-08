@@ -83,15 +83,21 @@ describe Vines::Stream::Component::Ready do
 
   describe 'when addressed to a local jid' do
     let(:recipient) { MiniTest::Mock.new }
+    let(:storage) { MiniTest::Mock.new }
     let(:xml) { node(%q{<message from="alice@tea.wonderland.lit" to="hatter@wonderland.lit"/>}) }
 
     before do
       recipient.expect :user, hatter
       recipient.expect :write, nil, [xml]
+
+      storage.expect :save_message, nil, [Vines::Stanza::Message]
+
       stream.expect :remote_domain, 'tea.wonderland.lit'
       stream.expect :user=, nil, [alice]
       stream.expect :user, alice
       stream.expect :connected_resources, [recipient], [hatter.jid]
+      stream.expect :prioritized_resources, [recipient], [hatter.jid]
+      stream.expect :storage, storage, ['wonderland.lit']
     end
 
     it 'sends the message to the connected stream' do

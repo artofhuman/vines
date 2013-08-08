@@ -50,6 +50,7 @@ describe Vines::Stream::Http::Ready do
 
   describe 'when receiving multiple stanzas in one body element' do
     let(:recipient) { MiniTest::Mock.new }
+    let(:storage) { MiniTest::Mock.new }
     let(:bogus) { node('<message type="bogus">raises stanza error</message>') }
     let(:ok) { node('<message to="hatter@wonderland.lit">but processes this message</message>') }
     let(:xml) { node(%Q{<body xmlns="http://jabber.org/protocol/httpbind" rid="42" sid="12">#{bogus}#{ok}</body>}) }
@@ -60,12 +61,18 @@ describe Vines::Stream::Http::Ready do
       recipient.expect :user, hatter
       recipient.expect :write, nil, [Vines::Stanza::Message]
 
+      storage.expect :save_message, nil, [Vines::Stanza::Message]
+
       stream.expect :valid_session?, true, ['12']
       stream.expect :parse_body, [raises, processes], [xml]
       stream.expect :error, nil, [Vines::StanzaErrors::BadRequest]
       stream.expect :config, config
+      stream.expect :config, config
+      stream.expect :config, config
       stream.expect :user, alice
       stream.expect :connected_resources, [recipient], [hatter.jid]
+      stream.expect :prioritized_resources, [recipient], [hatter.jid]
+      stream.expect :storage, storage, ['wonderland.lit']
     end
 
     it 'processes all stanzas' do
