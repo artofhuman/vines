@@ -33,9 +33,11 @@ module Vines
 
         @to = validate_to
         @from = validate_from
-        @recipients = local? ? stream.connected_resources(@to) : []
 
-        prioritized = stream.prioritized_resources(@to)
+        raise StanzaErrors::BadRequest.new(@node, 'modify') if @to.nil? || @from.nil?
+
+        prioritized = local? ? stream.prioritized_resources(@to) : []
+        @recipients = local? ? stream.connected_resources(@to) : []
         @recipients.select! { |r| prioritized.include?(r) } unless prioritized.empty?
 
         [Archive, Offline, Broadcast].each { |p| p.process(self) }

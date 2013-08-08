@@ -33,48 +33,34 @@ describe Vines::Stanza::Message do
 
   describe 'when the to address is missing' do
     let(:xml) { node('<message>hello!</message>') }
-    let(:recipient) { MiniTest::Mock.new }
 
-    before do
-      recipient.expect :user, alice
-      recipient.expect :write, nil, [xml]
-      stream.expect :connected_resources, [recipient], [alice.jid.bare]
-    end
-
-    it 'sends the message to the senders connected streams' do
-      subject.process
-      stream.verify
-      recipient.verify
+    it 'raises a bad-request stanza error' do
+      -> { subject.process }.must_raise Vines::StanzaErrors::BadRequest
     end
   end
 
   describe 'when addressed to a non-user' do
     let(:bogus) { Vines::JID.new('bogus@wonderland.lit/cake') }
     let(:xml) { node(%Q{<message to="#{bogus}">hello!</message>}) }
-    let(:storage) { MiniTest::Mock.new }
-
-    before do
-      storage.expect :find_user, nil, [bogus]
-      stream.expect :storage, storage, [bogus.domain]
-      stream.expect :connected_resources, [], [bogus]
-    end
 
     it 'ignores the stanza' do
-      subject.process
-      stream.verify
-      storage.verify
+      -> { subject.process }.must_raise Vines::StanzaErrors::BadRequest
     end
   end
 
   describe 'when addressed to an offline user' do
     let(:hatter) { Vines::User.new(jid: 'hatter@wonderland.lit/cake') }
-    let(:xml) { node(%Q{<message to="#{hatter.jid}">hello!</message>}) }
+    let(:xml) { node(%Q{<message to="#{hatter.jid}" from="#{alice}">hello!</message>}) }
     let(:storage) { MiniTest::Mock.new }
 
     before do
       storage.expect :find_user, hatter, [hatter.jid]
+      storage.expect :save_message, true, [Vines::Stanza::Message]
+
+      stream.expect :storage, storage, [hatter.jid.domain]
       stream.expect :storage, storage, [hatter.jid.domain]
       stream.expect :connected_resources, [], [hatter.jid]
+      stream.expect :prioritized_resources, [], [hatter.jid]
     end
 
     it 'raises a service-unavailable stanza error' do
@@ -85,11 +71,15 @@ describe Vines::Stanza::Message do
   end
 
   describe 'when address to a local user in a different domain' do
-    let(:xml) { node(%Q{<message to="#{romeo.jid}">hello!</message>}) }
+    let(:xml) { node(%Q{<message to="#{romeo.jid}" from="#{alice.jid}">hello!</message>}) }
     let(:expected) { node(%Q{<message to="#{romeo.jid}" from="#{alice.jid}">hello!</message>}) }
     let(:recipient) { MiniTest::Mock.new }
+    let(:storage) { MiniTest::Mock.new }
 
     before do
+      storage.expect :find_user, romeo, [romeo.jid]
+      storage.expect :save_message, true, [Vines::Stanza::Message]
+
       recipient.expect :user, romeo
       recipient.expect :write, nil, [expected]
 
@@ -98,6 +88,8 @@ describe Vines::Stanza::Message do
       end
 
       stream.expect :connected_resources, [recipient], [romeo.jid]
+      stream.expect :prioritized_resources, [recipient], [romeo.jid]
+      stream.expect :storage, storage, [romeo.jid.domain]
     end
 
     it 'delivers the stanza to the user' do
@@ -108,7 +100,7 @@ describe Vines::Stanza::Message do
   end
 
   describe 'when addressed to a remote user' do
-    let(:xml) { node(%Q{<message to="#{romeo.jid}">hello!</message>}) }
+    let(:xml) { node(%Q{<message to="#{romeo.jid}" from="#{alice.jid}">hello!</message>}) }
     let(:expected) { node(%Q{<message to="#{romeo.jid}" from="#{alice.jid}">hello!</message>}) }
     let(:router) { MiniTest::Mock.new }
 

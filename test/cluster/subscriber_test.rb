@@ -66,22 +66,62 @@ describe Vines::Cluster::Subscriber do
     end
   end
 
-  describe 'when receiving a stanza routed to my node' do
+  describe 'when receiving a stanza "message" routed to my node' do
+    let(:session) { MiniTest::Mock.new }
     let(:stream) { MiniTest::Mock.new }
+    let(:message) { MiniTest::Mock.new }
     let(:stanza) { "<message to='alice@wonderland.lit/tea'>hello</message>" }
     let(:xml) { Nokogiri::XML(stanza).root }
 
     before do
-      stream.expect :write, nil, [xml]
-      cluster.expect :connected_resources, [stream], ['alice@wonderland.lit/tea']
+      message.expect :nil?, false
+      message.expect :keep_from!, nil
+      message.expect :process, nil
+      message.expect :name, "message"
+
+      session.expect :stream, stream
+      cluster.expect :connected_resources, [session], ['alice@wonderland.lit/tea']
     end
 
     it 'writes the stanza to the connected user streams' do
-      msg = {from: 'node-42', type: 'stanza', stanza: stanza}.to_json
-      subject.send(:on_message, 'cluster:nodes:abc', msg)
-      stream.verify
+      Vines::Stanza.stub(:from_node, message) do
+        msg = {from: 'node-42', type: 'stanza', stanza: stanza}.to_json
+        subject.send(:on_message, 'cluster:nodes:abc', msg)
+      end
+
+      session.verify
       connection.verify
       cluster.verify
+      message.verify
+    end
+  end
+
+  describe 'when receiving a stanza routed to my node' do
+    let(:session) { MiniTest::Mock.new }
+    let(:stream) { MiniTest::Mock.new }
+    let(:message) { MiniTest::Mock.new }
+    let(:stanza) { "<presence to='alice@wonderland.lit/tea'></presence>" }
+    let(:xml) { Nokogiri::XML(stanza).root }
+
+    before do
+      message.expect :nil?, false
+      message.expect :process, nil
+      message.expect :name, "presence"
+
+      session.expect :stream, stream
+      cluster.expect :connected_resources, [session], ['alice@wonderland.lit/tea']
+    end
+
+    it 'writes the stanza to the connected user streams' do
+      Vines::Stanza.stub(:from_node, message) do
+        msg = {from: 'node-42', type: 'stanza', stanza: stanza}.to_json
+        subject.send(:on_message, 'cluster:nodes:abc', msg)
+      end
+
+      session.verify
+      connection.verify
+      cluster.verify
+      message.verify
     end
   end
 

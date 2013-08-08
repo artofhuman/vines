@@ -7,6 +7,7 @@ module Vines
         extend self
 
         def process(message)
+          return unless message.local?
           return if message.to == message.from
 
           message.storage(message.to.domain)

@@ -11,7 +11,7 @@ module Vines
         include Comparable
 
         attr_accessor :domain, :user
-        attr_reader   :id, :last_broadcast_presence, :state
+        attr_reader   :id, :stream, :last_broadcast_presence, :state
 
         def initialize(stream)
           @stream = stream
