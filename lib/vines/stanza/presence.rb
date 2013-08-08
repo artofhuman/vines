@@ -6,6 +6,7 @@ module Vines
       register "/presence"
 
       VALID_TYPES = %w[subscribe subscribed unsubscribe unsubscribed unavailable probe error].freeze
+      PRIORITY = 'priority'.freeze
 
       VALID_TYPES.each do |type|
         define_method "#{type}?" do

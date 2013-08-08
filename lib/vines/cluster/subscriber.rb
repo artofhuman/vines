@@ -85,19 +85,19 @@ module Vines
         return unless node
         log.debug { "Received cluster stanza: %s -> %s\n%s\n" % [message[FROM], @cluster.id, node] }
 
-        stream = @cluster.connected_resources(node[TO]).first.stream
-        stanza = Vines::Stanza.from_node(node, stream)
+        @cluster.connected_resources(node[TO]).each do |session|
+          stanza = Vines::Stanza.from_node(node, session.stream)
 
-        if stanza.nil?
-          if node[TO]
-            @cluster.connected_resources(node[TO]).each do |recipient|
-              recipient.write(node)
+          if stanza.nil?
+            if node[TO]
+              stream.write(node)
+            else
+              log.warn("Cluster stanza missing address:\n#{node}")
             end
           else
-            log.warn("Cluster stanza missing address:\n#{node}")
+            stanza.keep_from! if stanza.name == Vines::Stanza::MESSAGE
+            stanza.process
           end
-        else
-          stanza.process
         end
       end
 

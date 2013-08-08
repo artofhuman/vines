@@ -45,6 +45,12 @@ module Vines
       end
     end
 
+    def prioritized_resources(*jids, from)
+      clients(jids, from) do |stream|
+        stream.prioritized?
+      end
+    end
+
     # Add the connection to the routing table. The connection must return
     # :client, :server, or :component from its +stream_type+ method so the
     # router can properly route stanzas to the stream.

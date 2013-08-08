@@ -16,6 +16,16 @@ module Vines
         end
       end
 
+      def initialize(node, stream)
+        super
+
+        @keep_from = false
+      end
+
+      def keep_from!
+        @keep_from = true
+      end
+
       def process
         unless self[TYPE].nil? || VALID_TYPES.include?(self[TYPE])
           raise StanzaErrors::BadRequest.new(self, 'modify')
@@ -25,7 +35,19 @@ module Vines
         @from = validate_from
         @recipients = local? ? stream.connected_resources(@to) : []
 
+        prioritized = stream.prioritized_resources(@to)
+        @recipients.select! { |r| prioritized.include?(r) } unless prioritized.empty?
+
         [Archive, Offline, Broadcast].each { |p| p.process(self) }
+      end
+
+      def broadcast(recipients)
+        @node[FROM] = stream.user.jid.to_s unless @keep_from
+
+        recipients.each do |recipient|
+          @node[TO] = recipient.user.jid.to_s
+          recipient.write(@node)
+        end
       end
     end
   end

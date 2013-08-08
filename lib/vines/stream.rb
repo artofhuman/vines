@@ -98,6 +98,10 @@ module Vines
       router.interested_resources(*jid, user.jid)
     end
 
+    def prioritized_resources(*jid)
+      router.prioritized_resources(*jid, user.jid)
+    end
+
     def ssl_verify_peer(pem)
       # EM is supposed to close the connection when this returns false,
       # but it only does that for inbound connections, not when we

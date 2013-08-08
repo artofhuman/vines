@@ -201,16 +201,22 @@ module Vines
     # system doesn't know or care that these "streams" send their traffic over
     # redis pubsub channels.
     class StreamProxy
+      include Comparable
+
       attr_reader :user
 
       def initialize(cluster, session)
         @cluster, @user = cluster, UserProxy.new(cluster, session)
-        @node, @available, @interested, @presence =
-          session.values_at('node', 'available', 'interested', 'presence')
+        @node, @available, @interested, @presence, @prioritized =
+          session.values_at('node', 'available', 'interested', 'presence', 'prioritized')
 
         unless @presence.nil? || @presence.empty?
           @presence = Nokogiri::XML(@presence).root rescue nil
         end
+      end
+
+      def <=>(stream_proxy)
+        stream_proxy.is_a?(StreamProxy) ? self.user <=> stream_proxy.user : nil
       end
 
       def available?
@@ -219,6 +225,10 @@ module Vines
 
       def interested?
         @interested
+      end
+
+      def prioritized?
+        @prioritized
       end
 
       def last_broadcast_presence
