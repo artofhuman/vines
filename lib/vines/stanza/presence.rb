@@ -19,6 +19,7 @@ module Vines
         unless self['type'].nil?
           raise StanzaErrors::BadRequest.new(self, 'modify')
         end
+
         dir = outbound? ? 'outbound' : 'inbound'
         method("#{dir}_broadcast_presence").call
       end
@@ -33,14 +34,18 @@ module Vines
       end
 
       def outbound_broadcast_presence
-        self['from'] = stream.user.jid.to_s
         to = validate_to
+
+        self['from'] = (to.nil? || !restored?) ? stream.user.jid.to_s
+                                               : validate_from.to_s
+
         type = (self['type'] || '').strip
         initial = to.nil? && type.empty? && !stream.available?
 
         recipients = if to.nil?
           stream.available_subscribers
         else
+          # NOTICE : Check this
           stream.user.subscribed_from?(to) ? stream.available_resources(to) : []
         end
 

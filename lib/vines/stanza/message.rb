@@ -16,16 +16,6 @@ module Vines
         end
       end
 
-      def initialize(node, stream)
-        super
-
-        @keep_from = false
-      end
-
-      def keep_from!
-        @keep_from = true
-      end
-
       def process
         unless self[TYPE].nil? || VALID_TYPES.include?(self[TYPE])
           raise StanzaErrors::BadRequest.new(self, 'modify')
@@ -44,7 +34,7 @@ module Vines
       end
 
       def broadcast(recipients)
-        @node[FROM] = stream.user.jid.to_s unless @keep_from
+        @node[FROM] = stream.user.jid.to_s unless restored?
 
         recipients.each do |recipient|
           @node[TO] = recipient.user.jid.to_s

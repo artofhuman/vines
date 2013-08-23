@@ -31,7 +31,11 @@ module Vines
     # Send the stanza to all recipients, stamping it with from and
     # to addresses first.
     def broadcast(recipients)
-      @node[FROM] = stream.user.jid.to_s
+      to = validate_to
+
+      @node[FROM] = (to.nil? || !restored?) ? stream.user.jid.to_s
+                                            : validate_from.to_s
+
       recipients.each do |recipient|
         @node[TO] = recipient.user.jid.to_s
         recipient.write(@node)
@@ -108,6 +112,16 @@ module Vines
 
     def method_missing(method, *args, &block)
       @node.send(method, *args, &block)
+    end
+
+    # Mark stanza as cluster restored
+    # It means that +to+ attribute should be taken from +from+ attribute
+    def restored!
+      @restored = true
+    end
+
+    def restored?
+      @restored
     end
 
     private

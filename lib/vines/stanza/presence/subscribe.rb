@@ -7,25 +7,31 @@ module Vines
         register "/presence[@type='subscribe']"
 
         def process
-          stamp_from
+          if restored?
+            self['from'] = validate_from.bare.to_s
+          else
+            stamp_from
+          end
+
           inbound? ? process_inbound : process_outbound
         end
 
         def process_outbound
           to = stamp_to
-          stream.user.request_subscription(to)
+          from = restored? ? validate_from : to
+
+          stream.user.request_subscription(from)
           storage.save_user(stream.user)
           stream.update_user_streams(stream.user)
           local? ? process_inbound : route
-          send_roster_push(to)
+          send_roster_push(from)
         end
 
         def process_inbound
           to = stamp_to
           contact = storage(to.domain).find_user(to)
-          if contact.nil?
-            auto_reply_to_subscription_request(to, 'unsubscribed')
-          elsif contact.subscribed_from?(stream.user.jid)
+
+          if contact && contact.subscribed_from?(stream.user.jid)
             auto_reply_to_subscription_request(to, 'subscribed')
           else
             recipients = stream.available_resources(to)
