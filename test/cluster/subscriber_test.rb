@@ -75,9 +75,8 @@ describe Vines::Cluster::Subscriber do
 
     before do
       message.expect :nil?, false
-      message.expect :keep_from!, nil
+      message.expect :restored!, nil
       message.expect :process, nil
-      message.expect :name, "message"
 
       session.expect :stream, stream
       cluster.expect :connected_resources, [session], ['alice@wonderland.lit/tea']
@@ -106,7 +105,7 @@ describe Vines::Cluster::Subscriber do
     before do
       message.expect :nil?, false
       message.expect :process, nil
-      message.expect :name, "presence"
+      message.expect :restored!, nil
 
       session.expect :stream, stream
       cluster.expect :connected_resources, [session], ['alice@wonderland.lit/tea']

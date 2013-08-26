@@ -21,23 +21,31 @@ describe Vines::Stanza::Presence::Subscribe do
 
   describe 'outbound subscription to a local jid, but missing contact' do
     let(:xml) { node(%q{<presence id="42" to="hatter@wonderland.lit" type="subscribe"/>}) }
-    let(:user) { MiniTest::Mock.new }
+    let(:alice_user) { MiniTest::Mock.new }
+    let(:hatter_user) { MiniTest::Mock.new }
     let(:storage) { MiniTest::Mock.new }
-    let(:recipient) { MiniTest::Mock.new }
+    let(:alice_recipient) { MiniTest::Mock.new }
+    let(:hatter_recipient) { MiniTest::Mock.new }
+    let(:config) { MiniTest::Mock.new }
 
     before do
-      class << user
+      class << hatter_user
         attr_accessor :jid
       end
-      user.jid = alice
-      user.expect :request_subscription, nil, [hatter]
-      user.expect :contact, contact, [hatter]
+      hatter_user.jid = hatter
 
-      storage.expect :save_user, nil, [user]
+      class << alice_user
+        attr_accessor :jid
+      end
+      alice_user.jid = alice
+      alice_user.expect :request_subscription, nil, [hatter]
+      alice_user.expect :contact, contact, [hatter]
+
+      storage.expect :save_user, nil, [alice_user]
       storage.expect :find_user, nil, [hatter]
 
-      recipient.expect :user, user
-      class << recipient
+      alice_recipient.expect :user, alice_user
+      class << alice_recipient
         attr_accessor :nodes
         def write(node)
           @nodes ||= []
@@ -45,12 +53,26 @@ describe Vines::Stanza::Presence::Subscribe do
         end
       end
 
-      stream.user = user
+      hatter_recipient.expect :user, hatter_user
+      class << hatter_recipient
+        attr_accessor :nodes
+        def write(node)
+          @nodes ||= []
+          @nodes << node
+        end
+      end
+
+      stream.user = alice_user
+      stream.expect :config, config
       stream.expect :domain, 'wonderland.lit'
       stream.expect :storage, storage, ['wonderland.lit']
       stream.expect :storage, storage, ['wonderland.lit']
-      stream.expect :interested_resources, [recipient], [alice]
-      stream.expect :update_user_streams, nil, [user]
+      stream.expect :available_resources, [hatter_recipient], [hatter]
+      stream.expect :available_resources, [hatter_recipient], [hatter]
+      stream.expect :interested_resources, [alice_recipient], [alice]
+      stream.expect :update_user_streams, nil, [alice_user]
+
+      config.expect :local_jid?, true, [hatter]
 
       class << subject
         def route_iq; false; end
@@ -59,25 +81,32 @@ describe Vines::Stanza::Presence::Subscribe do
       end
     end
 
-    it 'rejects the subscription with an unsubscribed response' do
+    it 'send the subscription to available recipients' do
       subject.process
       stream.verify
-      user.verify
       storage.verify
-      stream.nodes.size.must_equal 1
+      config.verify
 
-      expected = node(%q{<presence from="hatter@wonderland.lit" id="42" to="alice@wonderland.lit" type="unsubscribed"/>})
-      stream.nodes.first.must_equal expected
+      alice_user.verify
+      alice_recipient.verify
+      alice_recipient.nodes.size.must_equal 1
+
+      hatter_user.verify
+      hatter_recipient.verify
+      hatter_recipient.nodes.size.must_equal 1
+
+      expected = node(%q{<presence id="42" to="hatter@wonderland.lit" type="subscribe" from="alice@wonderland.lit"/>})
+      hatter_recipient.nodes.first.must_equal expected
     end
 
     it 'sends a roster set to the interested resources with subscription none' do
       subject.process
-      recipient.nodes.size.must_equal 1
+      alice_recipient.nodes.size.must_equal 1
 
       query = %q{<query xmlns="jabber:iq:roster"><item jid="hatter@wonderland.lit" subscription="none"/></query>}
       expected = node(%Q{<iq to="alice@wonderland.lit/tea" type="set">#{query}</iq>})
-      recipient.nodes.first.remove_attribute('id') # id is random
-      recipient.nodes.first.must_equal expected
+      alice_recipient.nodes.first.remove_attribute('id') # id is random
+      alice_recipient.nodes.first.must_equal expected
     end
   end
 end
