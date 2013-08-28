@@ -26,7 +26,9 @@ module Vines
     :disco_items      => 'http://jabber.org/protocol/disco#items'.freeze,
     :disco_info       => 'http://jabber.org/protocol/disco#info'.freeze,
     :http_bind        => 'http://jabber.org/protocol/httpbind'.freeze,
+    :rsm              => 'http://jabber.org/protocol/rsm'.freeze,
     :bosh             => 'urn:xmpp:xbosh'.freeze,
+    :archive          => 'urn:xmpp:archive'.freeze,
     :vcard            => 'vcard-temp'.freeze,
     :si               => 'http://jabber.org/protocol/si'.freeze,
     :byte_streams     => 'http://jabber.org/protocol/bytestreams'.freeze
@@ -97,6 +99,10 @@ end
   vines/stanza/message/archive
   vines/stanza/message/offline
   vines/stanza/message/broadcast
+
+  vines/stanza/archive
+  vines/stanza/archive/list
+  vines/stanza/archive/retrieve
 
   vines/stanza/presence
   vines/stanza/presence/error
