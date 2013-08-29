@@ -11,24 +11,50 @@ module Vines
         include Nokogiri::XML
 
         NS = NAMESPACES[:rsm]
+        SET  = %w[max count after before first last].freeze
 
-        attr_reader :max, :after, :before
-        # :first, :last, :count
+        def self.from_node(node)
+          options = SET.map do |attribute|
+            value = node.xpath("ns:#{attribute}", 'ns' => NS).first
 
-        def initialize(set)
-          @max    = node_to_i(set.xpath('ns:max', 'ns' => NS).first)
-          @before = node_to_s(set.xpath('ns:before', 'ns' => NS).first)
-          @after  = node_to_s(set.xpath('ns:after', 'ns' => NS).first)
+            unless value.nil?
+              value = value.text
+              value = value.to_i if %w[max count].include?(attribute)
+            end
+
+            [attribute, value]
+          end
+
+          new(Hash[options])
         end
 
-        private
-        def node_to_i(node)
-          node_to_s(node).to_i
+        def initialize(options)
+          @options = options
         end
 
-        def node_to_s(node)
-          node.respond_to?(:text) ? node.text : ''
+        def to_response_xml
+          doc = Document.new
+          doc.create_element('set') do |set|
+            set.default_namespace = NS
+
+            %w[first last count].each do |a|
+              set << doc.create_element(a, @options[a])
+            end
+          end
         end
+
+        def to_request_xml
+          doc = Document.new
+          doc.create_element('set') do |set|
+            set.default_namespace = NS
+
+            %w[max after before].reject { |a| @options[a].nil? }.each do |a|
+              set << doc.create_element(a, @options[a])
+            end
+          end
+        end
+
+        SET.each { |a| define_method(a) { @options[a] } }
       end
 
     end
