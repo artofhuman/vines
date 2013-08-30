@@ -4,9 +4,6 @@ module Vines
   class Stanza
     class Archive
       class List < Archive
-        NS = NAMESPACES[:archive]
-        ACCEPTABLE_SET_SIZE = (1..100).freeze
-
         register "/iq[@id and @type='get']/ns:list", 'ns' => NS
 
         def process
@@ -20,15 +17,20 @@ module Vines
           raise StanzaErrors::NotAcceptable.new(self, 'modify') unless ACCEPTABLE_SET_SIZE.cover?(rsm.max.to_i)
 
           jid = JID.new(node['with'])
-          collections = jid.empty? ? storage.find_collections(stream.user.jid, rsm)
-                                   : storage.find_with_collections(stream.user.jid, jid, rsm)
+          # TODO node['start']
+          # TODO node['end']
+
+          options = {rsm: rsm}
+          options[:with] = jid unless jid.empty?
+
+          collections, total = storage.find_collections(stream.user.jid, options)
 
           if collections.empty?
             send_empty_list
             return
           end
 
-          send_list(collections)
+          send_list(collections, total)
         end
 
         private
@@ -41,7 +43,7 @@ module Vines
           stream.write(el)
         end
 
-        def send_list(collections)
+        def send_list(collections, total)
           me = stream.user.jid.bare.to_s
 
           el = to_result
@@ -53,20 +55,17 @@ module Vines
                                                          'start' => chat.created_at.utc)
             end
 
-            list << build_rsm(collections).to_response_xml
+            list << build_rsm(collections, total).to_response_xml
           end
 
           stream.write(el)
         end
 
-        def build_rsm(collections)
-          me  = stream.user.jid.bare.to_s
+        def build_rsm(collections, total)
+          first = collections.first.id
+          last  = collections.last.id
 
-          first = "#{chat_with(collections.first, me)}@#{collections.first.created_at.utc}"
-          last  = "#{chat_with(collections.last, me)}@#{collections.last.created_at.utc}"
-          count = collections.count
-
-          ResultSetManagment.new('count' => count, 'first' => first, 'last' => last)
+          ResultSetManagment.new('count' => total, 'first' => first, 'last' => last)
         end
 
         def chat_with(chat, me)

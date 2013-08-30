@@ -75,6 +75,7 @@ end
   set
   socket
   yaml
+  time
 
   vines/cli
   vines/log

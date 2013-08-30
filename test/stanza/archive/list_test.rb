@@ -1,7 +1,6 @@
 # encoding: UTF-8
 
 require 'test_helper'
-require 'time'
 
 describe Vines::Stanza::Archive::List do
   subject       { Vines::Stanza::Archive::List.new(xml, stream) }
@@ -37,7 +36,7 @@ describe Vines::Stanza::Archive::List do
     end
 
     describe 'when rsm not sended at all' do
-      let(:xml) { list(hatter.jid, without_rsm: true) }
+      let(:xml) { list(hatter.jid, without: [:rsm]) }
 
       it 'raises an bad-request stanza error' do
         -> { subject.process }.must_raise Vines::StanzaErrors::BadRequest
@@ -61,7 +60,9 @@ describe Vines::Stanza::Archive::List do
         stream.expect :write, nil, [result]
         stream.expect :storage, storage, [stream.domain]
 
-        storage.expect :find_collections, [], [alice.jid, Vines::Stanza::Archive::ResultSetManagment]
+        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+
+        storage.expect :find_collections, [[], 0], [alice.jid, {rsm: rsm}]
       end
 
       it 'response with empty list result' do
@@ -81,9 +82,9 @@ describe Vines::Stanza::Archive::List do
               <chat with="juliet@wonderland.lit" start="2013-05-01 12:15:32 UTC"/>
               <chat with="romeo@wonderland.lit" start="2013-08-27 11:54:06 UTC"/>
               <set xmlns="http://jabber.org/protocol/rsm">
-                <first>hatter@wonderland.lit@2013-02-12 09:44:12 UTC</first>
-                <last>romeo@wonderland.lit@2013-08-27 11:54:06 UTC</last>
-                <count>3</count>
+                <first>1</first>
+                <last>3</last>
+                <count>233</count>
               </set>
             </list>
           </iq>
@@ -94,11 +95,13 @@ describe Vines::Stanza::Archive::List do
         stream.expect :write, nil, [result]
         stream.expect :storage, storage, [stream.domain]
 
-        h = chat(jid_with: 'alice@wonderland.lit', jid_from: 'hatter@wonderland.lit', created_at: '2013-02-12 09:44:12 UTC')
-        j = chat(jid_with: 'juliet@wonderland.lit', jid_from: 'alice@wonderland.lit', created_at: '2013-05-01 12:15:32 UTC')
-        r = chat(jid_with: 'alice@wonderland.lit', jid_from: 'romeo@wonderland.lit', created_at: '2013-08-27 11:54:06 UTC')
+        h = chat(id: 1, jid_with: 'alice@wonderland.lit', jid_from: 'hatter@wonderland.lit', created_at: '2013-02-12 09:44:12 UTC')
+        j = chat(id: 2, jid_with: 'juliet@wonderland.lit', jid_from: 'alice@wonderland.lit', created_at: '2013-05-01 12:15:32 UTC')
+        r = chat(id: 3, jid_with: 'alice@wonderland.lit', jid_from: 'romeo@wonderland.lit', created_at: '2013-08-27 11:54:06 UTC')
 
-        storage.expect :find_collections, [h, j, r], [alice.jid, Vines::Stanza::Archive::ResultSetManagment]
+        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+
+        storage.expect :find_collections, [[h, j, r], 233], [alice.jid, {rsm: rsm}]
       end
 
       it 'response with list including 3 chat conversations' do
@@ -124,7 +127,9 @@ describe Vines::Stanza::Archive::List do
         stream.expect :write, nil, [result]
         stream.expect :storage, storage, [stream.domain]
 
-        storage.expect :find_with_collections, [], [alice.jid, hatter.jid, Vines::Stanza::Archive::ResultSetManagment]
+        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+
+        storage.expect :find_collections, [[], 0], [alice.jid, {rsm: rsm, with: hatter.jid}]
       end
 
       it 'response with empty list result' do
@@ -143,8 +148,8 @@ describe Vines::Stanza::Archive::List do
               <chat with="hatter@wonderland.lit" start="2013-02-12 09:44:12 UTC"/>
 
               <set xmlns="http://jabber.org/protocol/rsm">
-                <first>hatter@wonderland.lit@2013-02-12 09:44:12 UTC</first>
-                <last>hatter@wonderland.lit@2013-02-12 09:44:12 UTC</last>
+                <first>13</first>
+                <last>13</last>
                 <count>1</count>
               </set>
             </list>
@@ -156,9 +161,10 @@ describe Vines::Stanza::Archive::List do
         stream.expect :write, nil, [result]
         stream.expect :storage, storage, [stream.domain]
 
-        h = chat(jid_with: 'alice@wonderland.lit', jid_from: 'hatter@wonderland.lit', created_at: '2013-02-12 09:44:12 UTC')
+        h = chat(id: 13, jid_with: 'alice@wonderland.lit', jid_from: 'hatter@wonderland.lit', created_at: '2013-02-12 09:44:12 UTC')
+        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
 
-        storage.expect :find_with_collections, [h], [alice.jid, hatter.jid, Vines::Stanza::Archive::ResultSetManagment]
+        storage.expect :find_collections, [[h], 1], [alice.jid, {rsm: rsm, with: hatter.jid}]
       end
 
       it 'response with list including 1 chat conversation' do
@@ -170,17 +176,17 @@ describe Vines::Stanza::Archive::List do
   end
 
   private
-  MockChat = Struct.new(:jid_with, :jid_from, :created_at)
+  MockChat = Struct.new(:id, :jid_with, :jid_from, :created_at)
   def chat(options)
-    with, from, created_at = options.values_at(:jid_with, :jid_from, :created_at)
+    id, with, from, created_at = options.values_at(:id, :jid_with, :jid_from, :created_at)
 
-    MockChat.new(with, from, Time.parse(created_at))
+    MockChat.new(id, with, from, Time.parse(created_at))
   end
 
   def list(with, options = {})
-    without_rsm = options.fetch(:without_rsm, false)
+    without = options.fetch(:without, [])
 
-    rms_body = without_rsm ? '' : %Q{
+    rms_body = without.include?(:rsm) ? '' : %Q{
       <set xmlns='http://jabber.org/protocol/rsm'>
         #{[:max, :after, :before].map { |v| options[v].nil? ? '' : "<#{v}>#{options[v]}</#{v}>" } * "\n"}
       </set>}

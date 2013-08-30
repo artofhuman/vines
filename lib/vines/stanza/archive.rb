@@ -3,15 +3,20 @@
 module Vines
   class Stanza
     class Archive < Iq
+      NS = NAMESPACES[:archive]
+      ACCEPTABLE_SET_SIZE = (1..100).freeze
 
       # Empty
 
       private
       class ResultSetManagment
         include Nokogiri::XML
+        include Comparable
 
         NS = NAMESPACES[:rsm]
         SET  = %w[max count after before first last].freeze
+
+        attr_reader :options
 
         def self.from_node(node)
           options = SET.map do |attribute|
@@ -29,7 +34,11 @@ module Vines
         end
 
         def initialize(options)
-          @options = options
+          @options = Hash[SET.map {|x| [x, nil] }].merge!(options)
+        end
+
+        def <=>(other)
+          @options <=> other.options
         end
 
         def to_response_xml
