@@ -45,7 +45,9 @@ module Vines
 
               chat << el.document.create_element(direction) do |m|
                 m['secs'] = offset
-                m << el.document.create_element('body', message.body)
+                m << el.document.create_element('body', message.body) do |b|
+                  b['mid'] = message.created_at.to_i
+                end
               end
             end
 
