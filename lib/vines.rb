@@ -96,6 +96,10 @@ end
   vines/stanza/iq/vcard
   vines/stanza/iq/version
 
+  vines/stanza/rsm
+  vines/stanza/rsm/request
+  vines/stanza/rsm/response
+
   vines/stanza/message
   vines/stanza/message/archive
   vines/stanza/message/offline

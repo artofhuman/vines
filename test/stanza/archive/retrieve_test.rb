@@ -80,7 +80,7 @@ describe Vines::Stanza::Archive::Retrieve do
     before do
       stream.expect :storage, storage, [stream.domain]
 
-      rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+      rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
       storage.expect :find_messages, [[], 0], [alice.jid, hatter.jid, {start: Time.parse('2013-02-12 09:44:12 UTC'), end: nil, rsm: rsm}]
     end
@@ -104,9 +104,9 @@ describe Vines::Stanza::Archive::Retrieve do
             <to secs="60"><body mid="1360662312">Fine</body></to>
 
             <set xmlns="http://jabber.org/protocol/rsm">
+              <count>233</count>
               <first>11</first>
               <last>14</last>
-              <count>233</count>
             </set>
           </chat>
         </iq>
@@ -122,7 +122,7 @@ describe Vines::Stanza::Archive::Retrieve do
       m3 = message(id: 13, jid: 'hatter@wonderland.lit', body: 'How a u?', created_at: '2013-02-12 09:44:22 UTC')
       m4 = message(id: 14, jid: 'alice@wonderland.lit', body: 'Fine', created_at: '2013-02-12 09:45:12 UTC')
 
-      rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+      rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
       storage.expect :find_messages, [[m1, m2, m3, m4], 233], [alice.jid, hatter.jid, {start: Time.parse('2013-02-12 09:44:12 UTC'), end: nil, rsm: rsm}]
     end
@@ -144,9 +144,9 @@ describe Vines::Stanza::Archive::Retrieve do
             <from secs="8"><body mid="1360662260">A u here?</body></from>
 
             <set xmlns="http://jabber.org/protocol/rsm">
+              <count>15</count>
               <first>11</first>
               <last>12</last>
-              <count>15</count>
             </set>
           </chat>
         </iq>
@@ -160,7 +160,7 @@ describe Vines::Stanza::Archive::Retrieve do
       m1 = message(id: 11, jid: 'hatter@wonderland.lit', body: 'Hello', created_at: '2013-02-12 09:44:12 UTC')
       m2 = message(id: 12, jid: 'hatter@wonderland.lit', body: 'A u here?', created_at: '2013-02-12 09:44:20 UTC')
 
-      rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+      rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
       storage.expect :find_messages, [[m1, m2], 15], [alice.jid, hatter.jid, {start: Time.parse('2013-02-12 09:44:12 UTC'), end: Time.parse('2013-02-12 09:44:20 UTC'), rsm: rsm}]
     end

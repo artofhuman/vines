@@ -11,11 +11,11 @@ module Vines
 
           node = self.xpath('ns:retrieve', 'ns' => NS).first
 
-          rsm_node = node.xpath('ns:set', 'ns' => ResultSetManagment::NS)
+          rsm_node = node.xpath('ns:set', 'ns' => Vines::Stanza::Rsm::NS)
           raise StanzaErrors::BadRequest.new(self, 'modify') if rsm_node.empty?
 
-          rsm = ResultSetManagment.from_node(rsm_node)
-          raise StanzaErrors::NotAcceptable.new(self, 'modify') unless ACCEPTABLE_SET_SIZE.cover?(rsm.max.to_i)
+          rsm = Vines::Stanza::Rsm::Request.from_node(rsm_node)
+          raise StanzaErrors::NotAcceptable.new(self, 'modify') unless ACCEPTABLE_SET_SIZE.cover?(rsm.max)
 
           jid = JID.new(node['with'])
           start = Time.parse(node['start']) rescue nil
@@ -51,7 +51,7 @@ module Vines
               end
             end
 
-            chat << build_rsm(messages, total).to_response_xml
+            chat << build_rsm(messages, total).to_xml
           end
 
           stream.write(el)
@@ -61,7 +61,7 @@ module Vines
           first = messages.first.id
           last = messages.last.id
 
-          ResultSetManagment.new('count' => total, 'first' => first, 'last' => last)
+          Vines::Stanza::Rsm::Response.new('count' => total, 'first' => first, 'last' => last)
         end
       end
     end

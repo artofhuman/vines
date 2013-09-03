@@ -60,7 +60,7 @@ describe Vines::Stanza::Archive::List do
         stream.expect :write, nil, [result]
         stream.expect :storage, storage, [stream.domain]
 
-        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+        rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
         storage.expect :find_collections, [[], 0], [alice.jid, {rsm: rsm}]
       end
@@ -82,9 +82,9 @@ describe Vines::Stanza::Archive::List do
               <chat with="juliet@wonderland.lit" start="2013-05-01 12:15:32 UTC"/>
               <chat with="romeo@wonderland.lit" start="2013-08-27 11:54:06 UTC"/>
               <set xmlns="http://jabber.org/protocol/rsm">
+                <count>233</count>
                 <first>1</first>
                 <last>3</last>
-                <count>233</count>
               </set>
             </list>
           </iq>
@@ -99,7 +99,7 @@ describe Vines::Stanza::Archive::List do
         j = chat(id: 2, jid_with: 'juliet@wonderland.lit', jid_from: 'alice@wonderland.lit', created_at: '2013-05-01 12:15:32 UTC')
         r = chat(id: 3, jid_with: 'alice@wonderland.lit', jid_from: 'romeo@wonderland.lit', created_at: '2013-08-27 11:54:06 UTC')
 
-        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+        rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
         storage.expect :find_collections, [[h, j, r], 233], [alice.jid, {rsm: rsm}]
       end
@@ -127,7 +127,7 @@ describe Vines::Stanza::Archive::List do
         stream.expect :write, nil, [result]
         stream.expect :storage, storage, [stream.domain]
 
-        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+        rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
         storage.expect :find_collections, [[], 0], [alice.jid, {rsm: rsm, with: hatter.jid}]
       end
@@ -148,9 +148,9 @@ describe Vines::Stanza::Archive::List do
               <chat with="hatter@wonderland.lit" start="2013-02-12 09:44:12 UTC"/>
 
               <set xmlns="http://jabber.org/protocol/rsm">
+                <count>1</count>
                 <first>13</first>
                 <last>13</last>
-                <count>1</count>
               </set>
             </list>
           </iq>
@@ -162,7 +162,7 @@ describe Vines::Stanza::Archive::List do
         stream.expect :storage, storage, [stream.domain]
 
         h = chat(id: 13, jid_with: 'alice@wonderland.lit', jid_from: 'hatter@wonderland.lit', created_at: '2013-02-12 09:44:12 UTC')
-        rsm = Vines::Stanza::Archive::ResultSetManagment.new('max' => 100)
+        rsm = Vines::Stanza::Rsm::Request.new('max' => 100)
 
         storage.expect :find_collections, [[h], 1], [alice.jid, {rsm: rsm, with: hatter.jid}]
       end

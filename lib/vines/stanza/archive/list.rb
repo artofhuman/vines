@@ -10,11 +10,11 @@ module Vines
           return if route_iq || !allowed?
 
           node = self.xpath('ns:list', 'ns' => NS).first
-          rsm_node = node.xpath('ns:set', 'ns' => ResultSetManagment::NS)
+          rsm_node = node.xpath('ns:set', 'ns' => Vines::Stanza::Rsm::NS)
           raise StanzaErrors::BadRequest.new(self, 'modify') if rsm_node.empty?
 
-          rsm = ResultSetManagment.from_node(rsm_node)
-          raise StanzaErrors::NotAcceptable.new(self, 'modify') unless ACCEPTABLE_SET_SIZE.cover?(rsm.max.to_i)
+          rsm = Vines::Stanza::Rsm::Request.from_node(rsm_node)
+          raise StanzaErrors::NotAcceptable.new(self, 'modify') unless ACCEPTABLE_SET_SIZE.cover?(rsm.max)
 
           jid = JID.new(node['with'])
           # TODO node['start']
@@ -55,7 +55,7 @@ module Vines
                                                          'start' => chat.created_at.utc)
             end
 
-            list << build_rsm(collections, total).to_response_xml
+            list << build_rsm(collections, total).to_xml
           end
 
           stream.write(el)
@@ -65,7 +65,7 @@ module Vines
           first = collections.first.id
           last  = collections.last.id
 
-          ResultSetManagment.new('count' => total, 'first' => first, 'last' => last)
+          Vines::Stanza::Rsm::Response.new('count' => total, 'first' => first, 'last' => last)
         end
 
         def chat_with(chat, me)
