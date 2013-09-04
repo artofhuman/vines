@@ -78,9 +78,9 @@ describe Vines::Stanza::Archive::List do
         node(%q{
           <iq from="wonderland.lit" id="42" to="alice@wonderland.lit/home" type="result">
             <list xmlns="urn:xmpp:archive">
-              <chat with="hatter@wonderland.lit" start="2013-02-12 09:44:12 UTC"/>
-              <chat with="juliet@wonderland.lit" start="2013-05-01 12:15:32 UTC"/>
-              <chat with="romeo@wonderland.lit" start="2013-08-27 11:54:06 UTC"/>
+              <chat with="hatter@wonderland.lit" start="2013-02-12T09:44:12Z"/>
+              <chat with="juliet@wonderland.lit" start="2013-05-01T12:15:32Z"/>
+              <chat with="romeo@wonderland.lit" start="2013-08-27T11:54:06Z"/>
               <set xmlns="http://jabber.org/protocol/rsm">
                 <count>233</count>
                 <first>1</first>
@@ -145,7 +145,7 @@ describe Vines::Stanza::Archive::List do
         node(%q{
           <iq from="wonderland.lit" id="42" to="alice@wonderland.lit/home" type="result">
             <list xmlns="urn:xmpp:archive">
-              <chat with="hatter@wonderland.lit" start="2013-02-12 09:44:12 UTC"/>
+              <chat with="hatter@wonderland.lit" start="2013-02-12T09:44:12Z"/>
 
               <set xmlns="http://jabber.org/protocol/rsm">
                 <count>1</count>

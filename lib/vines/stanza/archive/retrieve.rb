@@ -31,22 +31,22 @@ module Vines
         private
         def send_chat(messages, total, with)
           me = stream.user.jid.bare.to_s
-          start = messages.first.created_at
+          start = messages.first.created_at.utc
 
           el = to_result
           el << el.document.create_element('chat') do |chat|
             chat.default_namespace = NS
             chat['with'] = with.bare.to_s
-            chat['start'] = start
+            chat['start'] = start.iso8601
 
             messages.each do |message|
               direction = (me == message.jid) ? 'to' : 'from'
-              offset = (message.created_at - start).to_i
+              offset = (message.created_at.utc - start).to_i
 
               chat << el.document.create_element(direction) do |m|
                 m['secs'] = offset
                 m << el.document.create_element('body', message.body) do |b|
-                  b['mid'] = message.created_at.to_i
+                  b['mid'] = message.created_at.utc.to_i
                 end
               end
             end

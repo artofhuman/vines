@@ -52,7 +52,7 @@ module Vines
             
             collections.each do |chat|
               list << el.document.create_element('chat', 'with' => chat_with(chat, me),
-                                                         'start' => chat.created_at.utc)
+                                                         'start' => chat.created_at.iso8601)
             end
 
             list << build_rsm(collections, total).to_xml

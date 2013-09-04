@@ -27,7 +27,7 @@ describe Vines::Stanza::Archive::Retrieve do
 
   describe 'when rsm not setted properly' do
     describe 'when rsm option max is missed' do
-      let(:xml) { retrieve(hatter.jid, '2013-02-12 09:44:12 UTC') }
+      let(:xml) { retrieve(hatter.jid, '2013-02-12T09:44:12Z') }
 
       it 'raises an not-acceptable stanza error' do
         -> { subject.process }.must_raise Vines::StanzaErrors::NotAcceptable
@@ -36,7 +36,7 @@ describe Vines::Stanza::Archive::Retrieve do
     end
 
     describe 'when rsm not sended at all' do
-      let(:xml) { retrieve(hatter.jid, '2013-02-12 09:44:12 UTC', without: [:rsm]) }
+      let(:xml) { retrieve(hatter.jid, '2013-02-12T09:44:12Z', without: [:rsm]) }
 
       it 'raises an bad-request stanza error' do
         -> { subject.process }.must_raise Vines::StanzaErrors::BadRequest
@@ -47,7 +47,7 @@ describe Vines::Stanza::Archive::Retrieve do
 
   describe 'when with or start attributes not setted properly' do
     describe 'when with not setted' do
-      let(:xml) { retrieve(nil, '2013-02-12 09:44:12 UTC', max: 100) }
+      let(:xml) { retrieve(nil, '2013-02-12T09:44:12Z', max: 100) }
 
       it 'raises an bad-request stanza error' do
         -> { subject.process }.must_raise Vines::StanzaErrors::BadRequest
@@ -75,7 +75,7 @@ describe Vines::Stanza::Archive::Retrieve do
   end
 
   describe 'when request not existed collection page' do
-    let(:xml) { retrieve(hatter.jid, '2013-02-12 09:44:12 UTC', max: 100) }
+    let(:xml) { retrieve(hatter.jid, '2013-02-12T09:44:12Z', max: 100) }
 
     before do
       stream.expect :storage, storage, [stream.domain]
@@ -93,11 +93,11 @@ describe Vines::Stanza::Archive::Retrieve do
   end
 
   describe 'when request existing collection page' do
-    let(:xml) { retrieve(hatter.jid, '2013-02-12 09:44:12 UTC', max: 100) }
+    let(:xml) { retrieve(hatter.jid, '2013-02-12T09:44:12Z', max: 100) }
     let(:result) do
       node(%q{
         <iq from="wonderland.lit" id="42" to="alice@wonderland.lit/home" type="result">
-          <chat xmlns="urn:xmpp:archive" with="hatter@wonderland.lit" start="2013-02-12 09:44:12 UTC">
+          <chat xmlns="urn:xmpp:archive" with="hatter@wonderland.lit" start="2013-02-12T09:44:12Z">
             <from secs="0"><body mid="1360662252">Hello</body></from>
             <to secs="8"><body mid="1360662260">Hi</body></to>
             <from secs="10"><body mid="1360662262">How a u?</body></from>
@@ -135,11 +135,11 @@ describe Vines::Stanza::Archive::Retrieve do
   end
 
   describe 'when request existing collection page anded at time' do
-    let(:xml) { retrieve(hatter.jid, '2013-02-12 09:44:12 UTC', end: '2013-02-12 09:44:20 UTC', max: 100) }
+    let(:xml) { retrieve(hatter.jid, '2013-02-12T09:44:12Z', end: '2013-02-12T09:44:20Z', max: 100) }
     let(:result) do
       node(%q{
         <iq from="wonderland.lit" id="42" to="alice@wonderland.lit/home" type="result">
-          <chat xmlns="urn:xmpp:archive" with="hatter@wonderland.lit" start="2013-02-12 09:44:12 UTC">
+          <chat xmlns="urn:xmpp:archive" with="hatter@wonderland.lit" start="2013-02-12T09:44:12Z">
             <from secs="0"><body mid="1360662252">Hello</body></from>
             <from secs="8"><body mid="1360662260">A u here?</body></from>
 
