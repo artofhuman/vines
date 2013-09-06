@@ -186,6 +186,18 @@ module Vines
       raise 'subclass must implement'
     end
 
+    def save_message(message)
+      raise 'subclass must implement'
+    end
+
+    def find_collections(jid, options)
+      raise 'subclass must implement'
+    end
+
+    def find_messages(jid, with, options)
+      raise 'subclass must implement'
+    end
+
     private
 
     # Return true if any of the arguments are nil or empty strings.
