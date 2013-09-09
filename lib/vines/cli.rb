@@ -3,7 +3,7 @@ module Vines
   # in the gem. Parses the command line arguments to create a new server
   # directory, and starts and stops the server.
   class CLI
-    COMMANDS = %w[start stop restart init bcrypt cert ldap schema]
+    COMMANDS = %w[start stop restart init bcrypt cert ldap schema migrate]
 
     def self.start
       self.new.start
@@ -73,7 +73,7 @@ module Vines
         end
 
         options[:force] = false
-        opts.on('-f', '--force', 'Forcibly do something') do |log|
+        opts.on('-f', '--force', 'Execute command forcibly') do |log|
           options[:force] = true
         end
 

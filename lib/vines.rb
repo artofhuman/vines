@@ -206,6 +206,7 @@ end
   vines/command/ldap
   vines/command/restart
   vines/command/schema
+  vines/command/migrate
   vines/command/start
   vines/command/stop
 ].each {|f| require f }
