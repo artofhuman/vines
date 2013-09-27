@@ -41,6 +41,14 @@ module Vines
       end
     end
 
+    # Process some work in background mode
+    # In this mode not allowed defer operations
+    def background
+      EM.defer do
+        Fiber.new { yield }.resume
+      end
+    end
+
     # Advance the state machine into the +Closed+ state so any remaining queued
     # nodes are not processed while we're waiting for EM to actually close the
     # connection.

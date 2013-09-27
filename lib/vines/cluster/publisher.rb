@@ -9,7 +9,7 @@ module Vines
     class Publisher
       include Vines::Log
 
-      ALL, STANZA, USER = %w[cluster:nodes:all stanza user].map {|s| s.freeze }
+      ALL, SHARE, STANZA, USER = %w[cluster:nodes:all cluster:nodes:share stanza user].map {|s| s.freeze }
 
       def initialize(cluster)
         @cluster = cluster
@@ -22,6 +22,17 @@ module Vines
           from: @cluster.id,
           type: type,
           time: Time.now.to_i
+        }.to_json)
+      end
+
+      # Share the stanza to all nodes
+      # The node must to decide process or not this stanza itself
+      def share(stanza)
+        log.debug { "Sent shared cluster stanza: %s -> %s\n" % [@cluster.id, stanza] }
+        redis.publish(SHARE, {
+          from: @cluster.id,
+          type: STANZA,
+          stanza: stanza.to_s
         }.to_json)
       end
 

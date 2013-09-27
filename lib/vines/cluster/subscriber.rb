@@ -9,8 +9,9 @@ module Vines
     class Subscriber
       include Vines::Log
 
-      ALL, FROM, HEARTBEAT, OFFLINE, ONLINE, STANZA, TIME, TO, TYPE, USER =
-        %w[cluster:nodes:all from heartbeat offline online stanza time to type user].map {|s| s.freeze }
+      ALL, SHARE, FROM, HEARTBEAT, OFFLINE, ONLINE, STANZA, TIME, TO, TYPE, USER =
+        %w[cluster:nodes:all cluster:nodes:share
+           from heartbeat offline online stanza time to type user].map {|s| s.freeze }
 
       def initialize(cluster)
         @cluster = cluster
@@ -25,6 +26,7 @@ module Vines
       def subscribe
         conn = @cluster.connect
         conn.subscribe(ALL)
+        conn.subscribe(SHARE)
         conn.subscribe(@channel)
         conn.on(:message) do |channel, message|
           @messages.push([channel, message])
@@ -50,10 +52,26 @@ module Vines
         doc = JSON.parse(message)
         case channel
         when ALL      then to_all(doc)
+        when SHARE    then analyze_share(doc)
         when @channel then to_node(doc)
         end
       rescue => e
         log.error("Cluster subscription message failed: #{e}")
+      end
+
+      # Analyze arrived shared message
+      # If it's arrive from the same node, then skip it
+      # If recipient exist on this node, then process it
+      def analyze_share(message)
+        return if message['from'] == @cluster.id
+
+        node = Nokogiri::XML(message[STANZA]).root rescue nil
+        return unless node
+
+        to = Vines::JID.new(node[TO])
+        return unless @cluster.storage(to.domain).user_exists?(to)
+
+        to_node(message)
       end
 
       # Process a message sent to the nodes:all broadcast channel. In the case
@@ -73,19 +91,41 @@ module Vines
       # to this node.
       def to_node(message)
         case message[TYPE]
-        when STANZA then route_stanza(message)
+        when STANZA then process_stanza(message)
         when USER   then update_user(message)
+        end
+      end
+
+      # Process arrived message store it for future use or send to resources
+      def process_stanza(message)
+        node = Nokogiri::XML(message[STANZA]).root rescue nil
+        return unless node
+        log.debug { "Received cluster stanza: %s -> %s\n%s\n" % [message[FROM], @cluster.id, node] }
+
+        recources = @cluster.connected_resources(node[TO])
+        if recources.empty?
+          store_stanza(node)
+        else
+          route_stanza(recources, node)
+        end
+      end
+
+      # Store stanza for future use
+      def store_stanza(node)
+        stream = Vines::Cluster::StreamProxy.new(@cluster, {'jid' => node[Vines::Stanza::FROM]})
+        stanza = Vines::Stanza.from_node(node, stream)
+
+        if stanza.nil?
+          log.warn("Unknown cluster stanza:\n#{node}")
+        elsif stanza.store?
+          stanza.store
         end
       end
 
       # Send the stanza, from a remote cluster node, to locally connected
       # streams for the destination user.
-      def route_stanza(message)
-        node = Nokogiri::XML(message[STANZA]).root rescue nil
-        return unless node
-        log.debug { "Received cluster stanza: %s -> %s\n%s\n" % [message[FROM], @cluster.id, node] }
-
-        @cluster.connected_resources(node[TO]).each do |session|
+      def route_stanza(recources, node)
+        recources.each do |session|
           stanza = Vines::Stanza.from_node(node, session.stream)
 
           if stanza.nil?

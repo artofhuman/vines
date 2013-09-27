@@ -6,15 +6,23 @@ module Vines
       module Archive
         extend self
 
+        # EM-safe message archiving
         def process(message)
           return unless message.local?
           return if message.to == message.from
 
-          message.storage(message.to.domain)
-                 .save_message(message)
+          message.storage(message.to.domain).save_message(message)
         end
 
-      end
+        # EM-blocking message archiving
+        def process!(message)
+          return unless message.local?
+          return if message.to == message.from
+
+          message.storage(message.to.domain).save_message!(message)
+        end
+
+      end # module Archive
     end
   end
 end

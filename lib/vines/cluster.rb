@@ -14,7 +14,7 @@ module Vines
   class Cluster
     include Vines::Log
 
-    attr_reader :id
+    attr_reader :id, :config
 
     %w[host port database password].each do |name|
       define_method(name) do |*args|
@@ -96,6 +96,12 @@ module Vines
     # messages.
     def route(stanza, node)
       @publisher.route(stanza, node)
+    end
+
+    # Send the stanza to the all nodes. The stanza is published to the channel
+    # to which the remote nodes is listening for messages
+    def share(stanza)
+      @publisher.share(stanza)
     end
 
     # Notify the remote node that the user's roster has changed and it should
@@ -203,16 +209,24 @@ module Vines
     class StreamProxy
       include Comparable
 
+      attr_reader :config, :domain
       attr_reader :user
 
       def initialize(cluster, session)
         @cluster, @user = cluster, UserProxy.new(cluster, session)
+        @config = @cluster.config
+        @domain = @user.jid.domain
+
         @node, @available, @interested, @presence, @prioritized =
           session.values_at('node', 'available', 'interested', 'presence', 'prioritized')
 
         unless @presence.nil? || @presence.empty?
           @presence = Nokogiri::XML(@presence).root rescue nil
         end
+      end
+
+      def storage(domain = nil)
+        @config.storage(domain || @domain)
       end
 
       def <=>(stream_proxy)

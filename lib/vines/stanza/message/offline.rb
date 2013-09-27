@@ -12,7 +12,10 @@ module Vines
 
           if user = message.storage(message.to.domain).find_user(message.to)
             # TODO Implement offline messaging storage
-            raise StanzaErrors::ServiceUnavailable.new(message, 'cancel')
+            #raise StanzaErrors::ServiceUnavailable.new(message, 'cancel')
+            message.store
+          elsif !message.restored?
+            message.share
           end
         end
 

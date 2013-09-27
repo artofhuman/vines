@@ -64,6 +64,13 @@ module Vines
           stream.remote_subscribed_to_contacts.each do |contact|
             send_probe(contact.jid.bare)
           end
+
+          # Send stanzas which was received while user was offline
+          send_pending_stanzas
+
+          # Send messages which was not marked as unread
+          send_renew_messages
+
           stream.available!
         end
 
@@ -79,6 +86,34 @@ module Vines
       end
 
       private
+      def send_pending_stanzas
+        return unless stream.prioritized?
+
+        stream.background do
+          loop do
+            stanzas = storage.find_pending_stanzas!(stream.user.jid)
+            break if stanzas.empty?
+
+            stanzas.each do |stanza|
+              node = Nokogiri::XML(stanza.xml).root rescue nil
+              node['label'] = 'offline'
+
+              if node.name == Vines::Stanza::MESSAGE
+                Vines::Stanza.from_node(node, stream).archive!
+              end
+
+              stream.write(node)
+            end
+            storage.delete_pending_stanzas!(stanzas.map { |x| x.id })
+
+            #sleep 0.5 # For large batches count very useful to slow down ...
+          end
+        end
+      end
+
+      def send_renew_messages
+        # TODO : Write some stuff
+      end
 
       def send_probe(to)
         to = JID.new(to)

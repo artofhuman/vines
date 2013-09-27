@@ -41,6 +41,20 @@ module Vines
           recipient.write(@node)
         end
       end
+
+      def archive!
+        @to = validate_to
+        @from = validate_from
+
+        return if @to.nil? || @from.nil?
+
+        Archive.process!(self)
+      end
+
+      # This stanza can be saved for future use
+      def store?
+        true
+      end
     end
   end
 end

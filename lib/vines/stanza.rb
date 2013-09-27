@@ -66,6 +66,10 @@ module Vines
       stream.router.route(@node)
     end
 
+    def share
+      stream.config.cluster.share(@node)
+    end
+
     def router
       stream.router
     end
@@ -122,6 +126,18 @@ module Vines
 
     def restored?
       @restored
+    end
+
+    # Save stanza for future use
+    def store
+      to = validate_to
+
+      storage(to.domain).save_pending_stanza(to, @node)
+    end
+
+    # Stanza can be stored or not
+    def store?
+      false
     end
 
     private
