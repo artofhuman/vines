@@ -98,10 +98,10 @@ describe Vines::Stanza::Archive::Retrieve do
       node(%q{
         <iq from="wonderland.lit" id="42" to="alice@wonderland.lit/home" type="result">
           <chat xmlns="urn:xmpp:archive" with="hatter@wonderland.lit" start="2013-02-12T09:44:12Z">
-            <from secs="0"><body mid="1360662252">Hello</body></from>
-            <to secs="8"><body mid="1360662260">Hi</body></to>
-            <from secs="10"><body mid="1360662262">How a u?</body></from>
-            <to secs="60"><body mid="1360662312">Fine</body></to>
+            <from secs="0"><body mid="7580bda6a367330878cbf95a315a022807d54fef">Hello</body></from>
+            <to secs="8"><body mid="82f167875197cce687f1d365778c03ba7552ce05">Hi</body></to>
+            <from secs="10"><body mid="57fdba9eb0b27c8a181c49c33cbbe07d3d3c08de">How a u?</body></from>
+            <to secs="60"><body mid="d718284eeaccb2492f873877c79842f453927346">Fine</body></to>
 
             <set xmlns="http://jabber.org/protocol/rsm">
               <count>233</count>
@@ -140,8 +140,8 @@ describe Vines::Stanza::Archive::Retrieve do
       node(%q{
         <iq from="wonderland.lit" id="42" to="alice@wonderland.lit/home" type="result">
           <chat xmlns="urn:xmpp:archive" with="hatter@wonderland.lit" start="2013-02-12T09:44:12Z">
-            <from secs="0"><body mid="1360662252">Hello</body></from>
-            <from secs="8"><body mid="1360662260">A u here?</body></from>
+            <from secs="0"><body mid="7580bda6a367330878cbf95a315a022807d54fef">Hello</body></from>
+            <from secs="8"><body mid="0a1a6b34f5a01ae934ca89582e5098405082b5b7">A u here?</body></from>
 
             <set xmlns="http://jabber.org/protocol/rsm">
               <count>15</count>

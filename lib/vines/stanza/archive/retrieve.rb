@@ -1,4 +1,5 @@
 # coding: UTF-8
+require 'digest/sha1'
 
 module Vines
   class Stanza
@@ -46,7 +47,7 @@ module Vines
               chat << el.document.create_element(direction) do |m|
                 m['secs'] = offset
                 m << el.document.create_element('body', message.body) do |b|
-                  b['mid'] = message.created_at.utc.to_i
+                  b['mid'] = Digest::SHA1.hexdigest("#{message.body}#{message.created_at}")
                 end
               end
             end
