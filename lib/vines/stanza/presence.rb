@@ -111,8 +111,27 @@ module Vines
         end
       end
 
+      # FIXME : Think about method place
       def send_renew_messages
-        # TODO : Write some stuff
+        return unless stream.prioritized?
+
+        stream.background do
+          jid = stream.user.jid
+
+          storage.fetch_renewed!(stream.user.jid) do |renew_message|
+            doc = Document.new
+            node = doc.create_element('message') do |el|
+              el['from'] = renew_message.from
+              el['to'] = renew_message.to # or jid.bare.to_s
+              el['type'] = 'chat'
+              el['label'] = 'renew'
+
+              el << doc.create_element('body', renew_message.body)
+            end
+
+            stream.write(node)
+          end
+        end
       end
 
       def send_probe(to)
