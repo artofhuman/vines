@@ -103,6 +103,7 @@ end
   vines/stanza/message
   vines/stanza/message/archive
   vines/stanza/message/offline
+  vines/stanza/message/unmark
   vines/stanza/message/broadcast
 
   vines/stanza/archive

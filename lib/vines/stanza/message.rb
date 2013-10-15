@@ -16,13 +16,17 @@ module Vines
         end
       end
 
+      def initialize(node, stream)
+        super
+
+        @to = validate_to
+        @from = validate_from
+      end
+
       def process
         unless self[TYPE].nil? || VALID_TYPES.include?(self[TYPE])
           raise StanzaErrors::BadRequest.new(self, 'modify')
         end
-
-        @to = validate_to
-        @from = validate_from
 
         raise StanzaErrors::BadRequest.new(@node, 'modify') if @to.nil? || @from.nil?
 
@@ -30,7 +34,7 @@ module Vines
         @recipients = local? ? stream.connected_resources(@to) : []
         @recipients.select! { |r| prioritized.include?(r) } unless prioritized.empty?
 
-        [Archive, Offline, Broadcast].each { |p| p.process(self) }
+        [Broadcast, Archive, Offline, Unmark].each { |p| p.process(self) }
       end
 
       def broadcast(recipients)
@@ -43,9 +47,6 @@ module Vines
       end
 
       def archive!
-        @to = validate_to
-        @from = validate_from
-
         return if @to.nil? || @from.nil?
 
         Archive.process!(self)
@@ -54,6 +55,14 @@ module Vines
       # This stanza can be saved for future use
       def store?
         true
+      end
+
+      def incoming?
+        stream.user.jid == @to
+      end
+
+      def outgoing?
+        stream.user.jid == @from
       end
     end
   end
