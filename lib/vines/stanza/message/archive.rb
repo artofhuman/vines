@@ -11,7 +11,7 @@ module Vines
           return unless message.local?
           return if message.to == message.from
 
-          message.storage(message.to.domain).save_message(message)
+          message.storage(message.from.domain).save_message(message)
         end
 
         # EM-blocking message archiving
@@ -19,7 +19,7 @@ module Vines
           return unless message.local?
           return if message.to == message.from
 
-          message.storage(message.to.domain).save_message!(message)
+          message.storage(message.from.domain).save_message!(message)
         end
 
       end # module Archive

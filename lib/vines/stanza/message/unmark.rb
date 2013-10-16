@@ -11,7 +11,7 @@ module Vines
           return unless message.local?
           return if message.inbound?
 
-          message.storage(message.to.domain)
+          message.storage(message.from.domain)
                  .unmark_messages(message.from, message.to)
         end
 

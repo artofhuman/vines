@@ -50,21 +50,24 @@ describe Vines::Stanza::Message do
 
   describe 'when addressed to an offline user' do
     let(:hatter) { Vines::User.new(jid: 'hatter@wonderland.lit/cake') }
-    let(:xml) { node(%Q{<message to="#{hatter.jid}" from="#{alice}">hello!</message>}) }
+    let(:xml) { node(%Q{<message to="#{hatter.jid}" from="#{alice.jid}">hello!</message>}) }
     let(:storage) { MiniTest::Mock.new }
 
     before do
       storage.expect :find_user, hatter, [hatter.jid]
       storage.expect :save_message, true, [Vines::Stanza::Message]
+      storage.expect :save_pending_stanza, true, [hatter.jid, xml]
+      storage.expect :unmark_messages, true, [alice.jid, hatter.jid]
 
-      stream.expect :storage, storage, [hatter.jid.domain]
-      stream.expect :storage, storage, [hatter.jid.domain]
+      4.times { stream.expect :storage, storage, [alice.jid.domain] }
+
       stream.expect :connected_resources, [], [hatter.jid]
       stream.expect :prioritized_resources, [], [hatter.jid]
     end
 
-    it 'raises a service-unavailable stanza error' do
-      -> { subject.process }.must_raise Vines::StanzaErrors::ServiceUnavailable
+    it 'store message for resend' do
+      subject.process
+
       stream.verify
       storage.verify
     end
@@ -79,6 +82,7 @@ describe Vines::Stanza::Message do
     before do
       storage.expect :find_user, romeo, [romeo.jid]
       storage.expect :save_message, true, [Vines::Stanza::Message]
+      storage.expect :unmark_messages, true, [alice.jid, romeo.jid]
 
       recipient.expect :user, romeo
       recipient.expect :write, nil, [expected]
@@ -89,7 +93,8 @@ describe Vines::Stanza::Message do
 
       stream.expect :connected_resources, [recipient], [romeo.jid]
       stream.expect :prioritized_resources, [recipient], [romeo.jid]
-      stream.expect :storage, storage, [romeo.jid.domain]
+
+      2.times { stream.expect :storage, storage, [alice.jid.domain] }
     end
 
     it 'delivers the stanza to the user' do
