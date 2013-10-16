@@ -57,13 +57,14 @@ module Vines
         true
       end
 
-      def incoming?
+      def outbound?
+        !inbound?
+      end
+
+      def inbound?
         stream.user.jid == @to
       end
 
-      def outgoing?
-        stream.user.jid == @from
-      end
     end
   end
 end

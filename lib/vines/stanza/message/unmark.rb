@@ -9,7 +9,7 @@ module Vines
         # EM-safe message archiving
         def process(message)
           return unless message.local?
-          return if message.incoming?
+          return if message.inbound?
 
           message.storage(message.to.domain)
                  .unmark_messages(message.from, message.to)
