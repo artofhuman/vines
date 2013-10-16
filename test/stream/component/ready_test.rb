@@ -94,7 +94,7 @@ describe Vines::Stream::Component::Ready do
 
       stream.expect :remote_domain, 'tea.wonderland.lit'
       stream.expect :user=, nil, [alice]
-      stream.expect :user, alice
+      2.times { stream.expect :user, alice }
       stream.expect :connected_resources, [recipient], [hatter.jid]
       stream.expect :prioritized_resources, [recipient], [hatter.jid]
       stream.expect :storage, storage, ['wonderland.lit']

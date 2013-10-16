@@ -9,6 +9,7 @@ module Vines
         # EM-safe message archiving
         def process(message)
           return unless message.local?
+          return unless message.local_jid?(message.from)
           return if message.inbound?
 
           message.storage(message.from.domain)

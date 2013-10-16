@@ -94,7 +94,8 @@ describe Vines::Stanza::Message do
       stream.expect :connected_resources, [recipient], [romeo.jid]
       stream.expect :prioritized_resources, [recipient], [romeo.jid]
 
-      2.times { stream.expect :storage, storage, [alice.jid.domain] }
+      stream.expect :storage, storage, [romeo.jid.domain]
+      stream.expect :storage, storage, [alice.jid.domain]
     end
 
     it 'delivers the stanza to the user' do

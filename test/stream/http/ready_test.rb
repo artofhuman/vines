@@ -61,18 +61,19 @@ describe Vines::Stream::Http::Ready do
       recipient.expect :user, hatter
       recipient.expect :write, nil, [Vines::Stanza::Message]
 
-      storage.expect :save_message, nil, [Vines::Stanza::Message]
+      storage.expect :save_message, true, [Vines::Stanza::Message]
+      storage.expect :unmark_messages, true, [alice.jid, hatter.jid]
 
       stream.expect :valid_session?, true, ['12']
       stream.expect :parse_body, [raises, processes], [xml]
       stream.expect :error, nil, [Vines::StanzaErrors::BadRequest]
 
-      5.times { stream.expect :config, config }
+      7.times { stream.expect :config, config }
 
-      stream.expect :user, alice
+      2.times { stream.expect :user, alice }
       stream.expect :connected_resources, [recipient], [hatter.jid]
       stream.expect :prioritized_resources, [recipient], [hatter.jid]
-      stream.expect :storage, storage, ['wonderland.lit']
+      2.times { stream.expect :storage, storage, ['wonderland.lit'] }
     end
 
     it 'processes all stanzas' do
