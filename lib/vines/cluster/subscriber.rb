@@ -63,7 +63,7 @@ module Vines
       # If it's arrive from the same node, then skip it
       # If recipient exist on this node, then process it
       def analyze_share(message)
-        return if message['from'] == @cluster.id
+        return if message[FROM] == @cluster.id
 
         node = Nokogiri::XML(message[STANZA]).root rescue nil
         return unless node
@@ -112,7 +112,7 @@ module Vines
 
       # Store stanza for future use
       def store_stanza(node)
-        stream = Vines::Cluster::StreamProxy.new(@cluster, {'jid' => node[Vines::Stanza::FROM]})
+        stream = Vines::Cluster::StreamProxy.new(@cluster, {'jid' => node[FROM]})
         stanza = Vines::Stanza.from_node(node, stream)
 
         if stanza.nil?

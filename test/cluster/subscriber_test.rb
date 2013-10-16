@@ -146,4 +146,78 @@ describe Vines::Cluster::Subscriber do
       cluster.verify
     end
   end
+
+  describe 'when receiving a shared stanza from myself' do
+    let(:stanza) { "<message to='alice@wonderland.lit/tea' from='hatter@wonderland.lit/cake'>hello</message>" }
+
+    before do
+      cluster.expect :id, 'abc'
+    end
+
+    it 'skips this stanza' do
+      Vines::Stanza.stub(:from_node, message) do
+        msg = {from: 'abc', type: 'stanza', stanza: stanza}.to_json
+        subject.send(:on_message, 'cluster:nodes:share', msg)
+      end
+
+      cluster.verify
+    end
+  end
+
+  describe 'when receiving a shared stanza from other node and can not process it' do
+    let(:alice) { Vines::User.new(jid: 'alice@wonderland.lit/tea') }
+    let(:stanza) { "<message to='alice@wonderland.lit/tea' from='hatter@wonderland.lit/cake'>hello</message>" }
+    let(:storage) { MiniTest::Mock.new }
+
+    before do
+      cluster.expect :id, 'abc'
+      cluster.expect :storage, storage, ['wonderland.lit']
+
+      storage.expect :user_exists?, false, [alice.jid]
+    end
+
+    it 'skips this stanza' do
+      Vines::Stanza.stub(:from_node, message) do
+        msg = {from: 'node-42', type: 'stanza', stanza: stanza}.to_json
+        subject.send(:on_message, 'cluster:nodes:share', msg)
+      end
+
+      cluster.verify
+      storage.verify
+    end
+  end
+
+  describe 'when receiving a shared stanza from other node and can process it' do
+    let(:alice) { Vines::User.new(jid: 'alice@wonderland.lit/tea') }
+    let(:stanza) { "<message to='alice@wonderland.lit/tea' from='hatter@wonderland.lit/cake'>hello</message>" }
+    let(:storage) { MiniTest::Mock.new }
+    let(:session) { MiniTest::Mock.new }
+    let(:config) { MiniTest::Mock.new }
+    let(:message) { MiniTest::Mock.new }
+
+    before do
+      cluster.expect :id, 'abc'
+      cluster.expect :storage, storage, ['wonderland.lit']
+      cluster.expect :connected_resources, [], ['alice@wonderland.lit/tea']
+      cluster.expect :config, config
+
+      message.expect :nil?, false
+      message.expect :store?, true
+      message.expect :store, nil
+
+      storage.expect :user_exists?, true, [alice.jid]
+    end
+
+    it 'stores stanza for future use if no resource connected' do
+      Vines::Stanza.stub(:from_node, message) do
+        msg = {from: 'node-42', type: 'stanza', stanza: stanza}.to_json
+        subject.send(:on_message, 'cluster:nodes:share', msg)
+      end
+
+      cluster.verify
+      storage.verify
+      message.verify
+      config.verify
+    end
+  end
 end
