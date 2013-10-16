@@ -54,4 +54,19 @@ describe Vines::Cluster::Publisher do
       cluster.verify
     end
   end
+
+  describe '#share' do
+    let(:stanza) { "<message>hello</message>" }
+
+    before do
+      msg = {from: 'abc', type: 'stanza', stanza: stanza}.to_json
+      connection.expect :publish, nil, ["cluster:nodes:share", msg]
+    end
+
+    it 'publishes the message to every cluster node' do
+      subject.share(stanza)
+      connection.verify
+      cluster.verify
+    end
+  end
 end
