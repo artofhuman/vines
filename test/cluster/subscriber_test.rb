@@ -16,11 +16,12 @@ describe Vines::Cluster::Subscriber do
     before do
       cluster.expect :connect, connection
       connection.expect :subscribe, nil, ['cluster:nodes:all']
+      connection.expect :subscribe, nil, ['cluster:nodes:share']
       connection.expect :subscribe, nil, ['cluster:nodes:abc']
       connection.expect :on, nil, [:message]
     end
 
-    it 'subscribes to its own channel and the broadcast channel' do
+    it 'subscribes to its own channel and the broadcast channel and shared channel' do
       subject.subscribe
       connection.verify
       cluster.verify
