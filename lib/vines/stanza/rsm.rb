@@ -36,7 +36,10 @@ module Vines
           set.default_namespace = NS
 
           @options.each do |f, v|
-            set << doc.create_element(f, v) unless v.nil?
+            next if v.nil?
+
+            set << (v.to_s.empty? ? doc.create_element(f)
+                                  : doc.create_element(f, v))
           end
         end
       end
