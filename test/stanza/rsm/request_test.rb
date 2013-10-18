@@ -80,6 +80,11 @@ describe Vines::Stanza::Rsm::Request do
         </set>
       })
 
+
+      xml = Nokogiri::XML::Document.new('')
+      puts xml.create_element('source', '')
+
+
       Vines::Stanza::Rsm::Request.new('max' => 10, 'before' => '').to_xml.must_equal expected
     end
   end

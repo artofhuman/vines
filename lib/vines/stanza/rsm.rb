@@ -18,6 +18,9 @@ module Vines
         new(fields.merge!(Hash[options]))
       end
 
+      # Public: Must be emplemented in subclasses
+      def self.fields; end
+
       def initialize(options)
         @options = self.class.fields.merge!(options)
         cast_types
@@ -41,6 +44,10 @@ module Vines
       def to_hash
         @options
       end
+
+      private
+      # Internal: Must be emplemented in subclasses
+      def cast_types; end
     end
   end
 end
