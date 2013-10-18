@@ -82,7 +82,8 @@ describe Vines::Stanza::Rsm::Request do
 
 
       xml = Nokogiri::XML::Document.new('')
-      puts xml.create_element('source', nil)
+      puts xml.create_element('source')
+      puts xml.create_element('source', '')
 
 
       Vines::Stanza::Rsm::Request.new('max' => 10, 'before' => '').to_xml.must_equal expected
