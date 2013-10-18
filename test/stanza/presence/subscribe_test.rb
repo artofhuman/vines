@@ -65,10 +65,8 @@ describe Vines::Stanza::Presence::Subscribe do
       stream.user = alice_user
       stream.expect :config, config
       stream.expect :domain, 'wonderland.lit'
-      stream.expect :storage, storage, ['wonderland.lit']
-      stream.expect :storage, storage, ['wonderland.lit']
-      stream.expect :available_resources, [hatter_recipient], [hatter]
-      stream.expect :available_resources, [hatter_recipient], [hatter]
+      2.times { stream.expect :storage, storage, ['wonderland.lit'] }
+      2.times { stream.expect :available_resources, [hatter_recipient], [hatter] }
       stream.expect :interested_resources, [alice_recipient], [alice]
       stream.expect :update_user_streams, nil, [alice_user]
 
