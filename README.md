@@ -1,5 +1,7 @@
 # Welcome to Vines
 
+[![Build Status](https://travis-ci.org/Strech/vines.png?branch=master)](https://travis-ci.org/Strech/vines)
+
 Vines is an XMPP chat server that supports thousands of simultaneous connections,
 using EventMachine for asynchronous IO. User data is stored in a
 [SQL database](https://github.com/negativecode/vines-sql),
