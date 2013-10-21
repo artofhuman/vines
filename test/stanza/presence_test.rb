@@ -84,4 +84,59 @@ describe Vines::Stanza::Presence do
 
     PendingStanza = Struct.new(:id, :xml)
   end
+
+  describe '#send_renew_messages' do
+    let(:alice)   { Vines::JID.new('alice@wonderland.lit/tea') }
+    let(:user)    { MiniTest::Mock.new }
+    let(:storage) { MiniTest::Mock.new }
+    let(:stanza)  { MiniTest::Mock.new }
+
+    let(:xml) do
+      node(%q{
+        <presence xmlns="jabber:client">
+          <priority>1</priority>
+          <show>away</show>
+        </presence>
+      })
+    end
+
+    before do
+      class << storage
+        def fetch_renewed!(jid)
+          [
+            RenewMessage.new('romeo@wonderland.lit', 'alice@wonderland.lit', 'Hello!'),
+            RenewMessage.new('romeo@wonderland.lit', 'alice@wonderland.lit', 'My friend')
+          ].each { |m| yield m }
+        end
+      end
+
+      class << user
+        attr_accessor :jid
+      end
+      user.jid = alice
+      stream.user = user
+      stream.config = config
+
+      stream.expect :prioritized?, true
+      stream.expect :domain, 'wonderland.lit'
+      stream.expect :storage, storage, ['wonderland.lit']
+    end
+
+    it 'sends pending stanzas' do
+      Vines::Stanza.stub(:from_node, stanza) do
+        subject.send :send_renew_messages
+      end
+
+      stream.verify
+      storage.verify
+      stanza.verify
+      user.verify
+
+      stream.nodes.size.must_equal 2
+      stream.nodes[0].must_equal node(%q{<message from="romeo@wonderland.lit" to="alice@wonderland.lit" type="chat" label="renew"><body>Hello!</body></message>})
+      stream.nodes[1].must_equal node(%q{<message from="romeo@wonderland.lit" to="alice@wonderland.lit" type="chat" label="renew"><body>My friend</body></message>})
+    end
+
+    RenewMessage = Struct.new(:from, :to, :body)
+  end
 end
