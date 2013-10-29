@@ -16,18 +16,20 @@ module Vines
         end
       end
 
-      def initialize(node, stream)
-        super
+      # def initialize(node, stream)
+      #   super
 
-        @to = validate_to
-        @from = validate_from
-      end
+      #   @to = validate_to
+      #   @from = validate_from
+      #   @from ||= stream.user.jid if outbound?
+      # end
 
       def process
         unless self[TYPE].nil? || VALID_TYPES.include?(self[TYPE])
           raise StanzaErrors::BadRequest.new(self, 'modify')
         end
 
+        prepare_required_fields
         raise StanzaErrors::BadRequest.new(@node, 'modify') if @to.nil? || @from.nil?
 
         prioritized = local? ? stream.prioritized_resources(@to) : []
@@ -47,6 +49,7 @@ module Vines
       end
 
       def archive!
+        prepare_required_fields
         return if @to.nil? || @from.nil?
 
         Archive.process!(self)
@@ -63,6 +66,14 @@ module Vines
 
       def inbound?
         stream.user.jid == @to
+      end
+
+      private
+      def prepare_required_fields
+        validate_to if @to.nil?
+        validate_from if @from.nil?
+
+        @from ||= stream.user.jid if outbound?
       end
 
     end

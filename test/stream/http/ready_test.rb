@@ -70,7 +70,7 @@ describe Vines::Stream::Http::Ready do
 
       7.times { stream.expect :config, config }
 
-      2.times { stream.expect :user, alice }
+      3.times { stream.expect :user, alice }
       stream.expect :connected_resources, [recipient], [hatter.jid]
       stream.expect :prioritized_resources, [recipient], [hatter.jid]
       2.times { stream.expect :storage, storage, ['wonderland.lit'] }

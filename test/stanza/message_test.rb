@@ -41,7 +41,7 @@ describe Vines::Stanza::Message do
 
   describe 'when addressed to a non-user' do
     let(:bogus) { Vines::JID.new('bogus@wonderland.lit/cake') }
-    let(:xml) { node(%Q{<message to="#{bogus}">hello!</message>}) }
+    let(:xml) { node(%Q{<message to="" from="#{bogus}">hello!</message>}) }
 
     it 'ignores the stanza' do
       -> { subject.process }.must_raise Vines::StanzaErrors::BadRequest

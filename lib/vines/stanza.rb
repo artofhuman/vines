@@ -104,14 +104,14 @@ module Vines
     # if it contains a valid 'to' attribute.  Raise a JidMalformed error if
     # the JID is invalid.
     def validate_to
-      validate_address(TO)
+      @to = validate_address(TO)
     end
 
     # Return nil if this stanza has no 'from' attribute. Return a Vines::JID
     # if it contains a valid 'from' attribute.  Raise a JidMalformed error if
     # the JID is invalid.
     def validate_from
-      validate_address(FROM)
+      @from = validate_address(FROM)
     end
 
     def method_missing(method, *args, &block)
