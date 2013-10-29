@@ -120,7 +120,7 @@ module Vines
 
     # Mark stanza as cluster restored
     # It means that +to+ attribute should be taken from +from+ attribute
-    def restored!
+    def mark_as_restored
       @restored = true
     end
 

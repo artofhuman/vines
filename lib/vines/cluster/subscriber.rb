@@ -135,7 +135,7 @@ module Vines
               log.warn("Cluster stanza missing address:\n#{node}")
             end
           else
-            stanza.restored!
+            stanza.mark_as_restored
             stanza.process
           end
         end
