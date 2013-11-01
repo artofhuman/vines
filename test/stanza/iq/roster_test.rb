@@ -226,4 +226,74 @@ describe Vines::Stanza::Iq::Roster do
       recipient.nodes.first.must_equal expected
     end
   end
+
+  describe 'when remove jid from roster' do
+    describe 'when subscription = remove' do
+      # TODO : Write tests for remove
+    end
+
+    describe 'when subscription = removed' do
+      let(:xml) do
+        node(%q{
+          <iq id="42" type="set" to="alice@wonderland.lit">
+            <query xmlns="jabber:iq:roster">
+              <item jid="hatter@wonderland.lit" subscription="removed"/>
+            </query>
+          </iq>})
+      end
+
+      let(:contact) { MiniTest::Mock.new }
+      let(:alice) { MiniTest::Mock.new }
+      let(:storage) { MiniTest::Mock.new }
+
+      before do
+        class << subject
+          def restored?
+            true
+          end
+        end
+
+        class << alice
+          def jid
+            Vines::JID.new('alice@wonderland.lit')
+          end
+        end
+      end
+
+      describe 'when contact found' do
+        before do
+        contact.expect :subscription=, nil, ['none']
+        contact.expect :ask=, nil, [nil]
+
+        alice.expect :contact, contact, [Vines::JID]
+        storage.expect :save_user, nil, [alice]
+
+        stream.expect :storage, storage, ['wonderland.lit']
+        stream.expect :update_user_streams, nil, [alice]
+        end
+
+        it 'should change subscription from both to none' do
+          subject.process
+
+          stream.verify
+          alice.verify
+          contact.verify
+          storage.verify
+        end
+      end
+
+      describe 'when contact not found' do
+        before { alice.expect :contact, nil, [Vines::JID] }
+
+        it 'should change subscription from both to none' do
+          -> { subject.process }.must_raise Vines::StanzaErrors::ItemNotFound
+
+          stream.verify
+          alice.verify
+          contact.verify
+          storage.verify
+        end
+      end
+    end
+  end
 end

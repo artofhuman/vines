@@ -46,6 +46,9 @@ module Vines
           if item['subscription'] == 'remove'
             remove_contact(jid)
             return
+          elsif item['subscription'] == 'removed'
+            was_removed_contact(jid) if restored?
+            return
           end
 
           raise StanzaErrors::NotAllowed.new(self, 'modify') if jid == stream.user.jid.bare
@@ -92,6 +95,11 @@ module Vines
           push_roster_updates(stream.user.jid,
             Contact.new(jid: contact.jid, subscription: 'remove'))
 
+          if local_jid?(contact.jid) && user.nil?
+            push_roster_updates(contact.jid,
+              Contact.new(jid: stream.user.jid, subscription: 'removed'))
+          end
+
           if local_jid?(contact.jid)
             send_unavailable(stream.user.jid, contact.jid) if contact.subscribed_from?
             send_unsubscribe(contact)
@@ -101,6 +109,20 @@ module Vines
           else
             send_unsubscribe(contact)
           end
+        end
+
+        # If contact removes you (acceptable only for cluster)
+        #
+        # Returns nothing
+        def was_removed_contact(jid)
+          contact = stream.user.contact(jid)
+          raise StanzaErrors::ItemNotFound.new(self, 'modify') unless contact
+
+          contact.subscription = 'none'
+          contact.ask = nil
+
+          storage(stream.user.jid.domain).save_user(stream.user)
+          stream.update_user_streams(stream.user)
         end
 
         # Notify the contact that it's been removed from the user's roster
