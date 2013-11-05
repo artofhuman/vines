@@ -28,7 +28,11 @@ module Vines
         @recipients = local? ? stream.connected_resources(@to) : []
         @recipients.select! { |r| prioritized.include?(r) } unless prioritized.empty?
 
-        [Broadcast, Archive, Offline, Unmark].each { |p| p.process(self) }
+        if Chatstate.typing?(@node)
+          Broadcast.process(self)
+        else
+          [Broadcast, Archive, Offline, Unmark].each { |p| p.process(self) }
+        end
       end
 
       def broadcast(recipients)

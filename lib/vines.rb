@@ -31,7 +31,8 @@ module Vines
     :archive          => 'urn:xmpp:archive'.freeze,
     :vcard            => 'vcard-temp'.freeze,
     :si               => 'http://jabber.org/protocol/si'.freeze,
-    :byte_streams     => 'http://jabber.org/protocol/bytestreams'.freeze
+    :byte_streams     => 'http://jabber.org/protocol/bytestreams'.freeze,
+    :chatstates       => 'http://jabber.org/protocol/chatstates'.freeze
   }.freeze
 
   module Log
@@ -105,6 +106,7 @@ end
   vines/stanza/message/offline
   vines/stanza/message/unmark
   vines/stanza/message/broadcast
+  vines/stanza/message/chatstate
 
   vines/stanza/archive
   vines/stanza/archive/list

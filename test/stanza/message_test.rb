@@ -80,7 +80,6 @@ describe Vines::Stanza::Message do
     let(:storage) { MiniTest::Mock.new }
 
     before do
-      storage.expect :find_user, romeo, [romeo.jid]
       storage.expect :save_message, true, [Vines::Stanza::Message]
       storage.expect :unmark_messages, true, [alice.jid, romeo.jid]
 
@@ -102,6 +101,7 @@ describe Vines::Stanza::Message do
       subject.process
       stream.verify
       recipient.verify
+      storage.verify
     end
   end
 
@@ -119,6 +119,47 @@ describe Vines::Stanza::Message do
       subject.process
       stream.verify
       router.verify
+    end
+  end
+
+  describe 'when message is user chatstate' do
+    let(:hatter) { Vines::User.new(jid: 'hatter@wonderland.lit/cake') }
+    let(:recipient) { MiniTest::Mock.new }
+    let(:storage) { MiniTest::Mock.new }
+
+    let(:xml) do
+      node(%Q{
+        <message to="#{hatter.jid}" from="#{alice.jid}">
+          <composing xmlns="http://jabber.org/protocol/chatstates"/></message>
+        <message to="#{hatter.jid}" from="#{alice.jid}">
+          <paused xmlns="http://jabber.org/protocol/chatstates"/></message>
+        <message to="#{hatter.jid}" from="#{alice.jid}">
+          <active xmlns="http://jabber.org/protocol/chatstates"/></message>})
+    end
+
+    let(:expected) do
+      node(%Q{
+        <message to="#{hatter.jid}" from="#{alice.jid}">
+          <composing xmlns="http://jabber.org/protocol/chatstates"/></message>
+        <message to="#{hatter.jid}" from="#{alice.jid}">
+          <paused xmlns="http://jabber.org/protocol/chatstates"/></message>
+        <message to="#{hatter.jid}" from="#{alice.jid}">
+          <active xmlns="http://jabber.org/protocol/chatstates"/></message>})
+    end
+
+    before do
+      recipient.expect :user, hatter
+      recipient.expect :write, nil, [expected]
+
+      stream.expect :connected_resources, [recipient], [hatter.jid]
+      stream.expect :prioritized_resources, [recipient], [hatter.jid]
+    end
+
+    it 'delivers the stanza to the user' do
+      subject.process
+      stream.verify
+      recipient.verify
+      storage.verify
     end
   end
 end
