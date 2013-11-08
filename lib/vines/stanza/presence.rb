@@ -69,7 +69,7 @@ module Vines
           send_pending_stanzas
 
           # Send messages which was not marked as unread
-          # send_renew_messages
+          send_renew_messages
 
           stream.available!
         end
