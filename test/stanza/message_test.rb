@@ -55,7 +55,6 @@ describe Vines::Stanza::Message do
 
     before do
       storage.expect :find_user, hatter, [hatter.jid]
-      storage.expect :save_message, true, [Vines::Stanza::Message]
       storage.expect :save_pending_stanza, true, [hatter.jid, xml]
       storage.expect :unmark_messages, true, [alice.jid, hatter.jid]
 
