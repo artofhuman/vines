@@ -27,7 +27,8 @@ module Vines
             end
           end
           stream.write(result)
-          send_empty_features
+          # send_empty_features # FIXME : Some mobile clients can't
+                                #         accept two responses in one request
           advance
         end
 
