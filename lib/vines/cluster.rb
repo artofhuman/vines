@@ -41,6 +41,8 @@ module Vines
     # heartbeat broadcasts. This method must be called after initialize
     # or this node will not be a cluster member.
     def start
+      $0 = "vines: #{@id}"
+
       @connection.connect
       @publisher.broadcast(:online)
       @subscriber.subscribe
